@@ -1,38 +1,33 @@
 pipeline {
     agent any
     environment {
-        // Define the EC2 SSH key and remote server details
-        EC2_HOST = 'your-ec2-ip'
+        EC2_HOST = '3.110.215.76   // Replace with your EC2 IP (e.g., 13.234.XX.XX)
         EC2_USER = 'ubuntu'
-        SSH_KEY = credentials('ubuntu-ki-key') // Use your EC2 SSH key credential ID here
-        GIT_CREDENTIALS = credentials('github-creds') // Use your GitHub access token credential ID here
+        GIT_CREDENTIALS = credentials('github-creds')
     }
+
     stages {
         stage('Checkout') {
             steps {
-                // Clone the repository from GitHub using the GitHub access token
-                git url: 'https://github.com/Angad0691996/server-monitor-devops.git', credentialsId: 'github-creds'
+                git branch: 'main', url: 'https://github.com/Angad0691996/server-monitor-devops.git', credentialsId: 'github-creds'
             }
         }
 
         stage('Build Docker Images') {
             steps {
-                script {
-                    // Build the Docker images using Docker Compose
-                    sh 'docker-compose -f docker-compose.yml build'
-                }
+                sh 'docker-compose -f docker-compose.yml build'
             }
         }
 
         stage('Deploy to EC2') {
             steps {
-                script {
-                    // Deploy Docker containers (Prometheus, Grafana, and Flask) to EC2
+                withCredentials([sshUserPrivateKey(credentialsId: 'ubuntu-ki-key', keyFileVariable: 'KEY_FILE')]) {
                     sh """
-                    ssh -i $SSH_KEY $EC2_USER@$EC2_HOST << 'EOF'
-                        cd /path/to/your/project
+                    ssh -o StrictHostKeyChecking=no -i \$KEY_FILE $EC2_USER@$EC2_HOST << 'EOF'
+                        cd /home/ubuntu/server-monitor-devops   # Make sure this path exists on EC2
                         docker-compose down
                         docker-compose up -d
+                        docker system prune -f
                     EOF
                     """
                 }
@@ -41,23 +36,13 @@ pipeline {
 
         stage('Grafana Access') {
             steps {
-                script {
-                    // Check if Grafana is accessible
-                    echo "Grafana is now accessible at http://$EC2_HOST:3000"
-                }
-            }
-        }
-
-        stage('Clean Up') {
-            steps {
-                // Clean up any temporary files or containers if needed
-                sh 'docker system prune -f'
+                echo "Grafana is now accessible at http://$EC2_HOST:3000"
             }
         }
     }
+
     post {
         always {
-            // Always notify or clean up after the pipeline runs
             echo 'Pipeline execution complete!'
         }
     }
