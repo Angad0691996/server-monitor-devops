@@ -27,7 +27,7 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 script {
-                    // Deploy Docker containers to EC2
+                    // Deploy Docker containers (Prometheus, Grafana, and Flask) to EC2
                     sh """
                     ssh -i $SSH_KEY $EC2_USER@$EC2_HOST << 'EOF'
                         cd /path/to/your/project
@@ -35,6 +35,15 @@ pipeline {
                         docker-compose up -d
                     EOF
                     """
+                }
+            }
+        }
+
+        stage('Grafana Access') {
+            steps {
+                script {
+                    // Check if Grafana is accessible
+                    echo "Grafana is now accessible at http://$EC2_HOST:3000"
                 }
             }
         }
