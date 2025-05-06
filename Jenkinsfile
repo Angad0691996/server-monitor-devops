@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        EC2_HOST = '3.110.215.76   // Replace with your EC2 IP (e.g., 13.234.XX.XX)
+        EC2_HOST = '3.110.215.76'  
         EC2_USER = 'ubuntu'
         GIT_CREDENTIALS = credentials('github-creds')
     }
@@ -23,8 +23,9 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ubuntu-ki-key', keyFileVariable: 'KEY_FILE')]) {
                     sh """
+                    chmod 400 \$KEY_FILE
                     ssh -o StrictHostKeyChecking=no -i \$KEY_FILE $EC2_USER@$EC2_HOST << 'EOF'
-                        cd /home/ubuntu/server-monitor-devops   # Make sure this path exists on EC2
+                        cd /home/ubuntu/server-monitor-devops
                         docker-compose down
                         docker-compose up -d
                         docker system prune -f
