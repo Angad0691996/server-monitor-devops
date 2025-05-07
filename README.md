@@ -80,3 +80,5 @@ docker ps -a
 ```
 
 That’s it! The deployment is now fully automated.
+![image](https://github.com/user-attachments/assets/fe75696f-7e35-48c7-a3c4-110c70525c43)
+
