@@ -21,9 +21,9 @@ pipeline {
 
         stage('Deploy to EC2') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'ubuntu-ki-key', keyFileVariable: 'KEY_FILE')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ubuntu-key', keyFileVariable: 'KEY_FILE')]) {
                     sh """
-                    chmod 400 \$KEY_FILE
+                    chmod 600 \$KEY_FILE  # Set correct permissions for the SSH key
                     ssh -o StrictHostKeyChecking=no -i \$KEY_FILE $EC2_USER@$EC2_HOST << 'EOF'
                         cd /home/ubuntu/server-monitor-devops
                         docker-compose down
