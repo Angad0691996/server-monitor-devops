@@ -24,9 +24,9 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ubuntu-key', keyFileVariable: 'KEY_FILE')]) {
                     sh """
                     chmod 600 \$KEY_FILE  # Set correct permissions for the SSH key
-                    ssh -o StrictHostKeyChecking=no -i \$KEY_FILE $EC2_USER@$EC2_HOST << 'EOF'
+                    ssh -o StrictHostKeyChecking=no -i \$KEY_FILE $EC2_USER@$EC2_HOST "
                         # Check if the directory exists; if not, clone the repository
-                        if [ ! -d "/home/ubuntu/server-monitor-devops/.git" ]; then
+                        if [ ! -d \"/home/ubuntu/server-monitor-devops/.git\" ]; then
                             cd /home/ubuntu
                             git clone https://github.com/Angad0691996/server-monitor-devops.git
                         else
@@ -35,10 +35,11 @@ pipeline {
                         fi
                         
                         # Deploy with Docker Compose
+                        cd /home/ubuntu/server-monitor-devops
                         docker-compose down
                         docker-compose up -d
                         docker system prune -f
-                    EOF
+                    "
                     """
                 }
             }
