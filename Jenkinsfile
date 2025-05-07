@@ -1,4 +1,5 @@
 pipeline {
+<<<<<<< HEAD
 agent any
 environment {
 EC2\_HOST = '13.202.247.39'
@@ -12,6 +13,13 @@ stages {
         steps {
             git branch: 'main', url: 'https://github.com/Angad0691996/server-monitor-devops.git', credentialsId: 'github-creds'
         }
+=======
+    agent any
+    environment {
+        EC2_HOST = '13.202.247.39'  
+        EC2_USER = 'ubuntu'
+        GIT_CREDENTIALS = credentials('github-creds')
+>>>>>>> origin/main
     }
 
     stage('Build Docker Images') {
