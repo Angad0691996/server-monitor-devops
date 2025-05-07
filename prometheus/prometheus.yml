@@ -4,10 +4,10 @@ global:
 scrape_configs:
   - job_name: "flask_server_monitor"
     static_configs:
-      - targets: ["server-monitor:5000"]
+      - targets: ["server-monitor:5000"]  # Service name and port within Docker network
         labels:
           app: "flask_monitor"
           
   - job_name: 'node_exporter'
     static_configs:
-      - targets: ['localhost:9100']
+      - targets: ['13.127.116.15:9100']  # Replace with the actual EC2 instance IP address for Node Exporter
