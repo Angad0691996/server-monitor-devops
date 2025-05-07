@@ -25,7 +25,14 @@ pipeline {
                     sh """
                     chmod 600 \$KEY_FILE  # Set correct permissions for the SSH key
                     ssh -o StrictHostKeyChecking=no -i \$KEY_FILE $EC2_USER@$EC2_HOST << 'EOF'
+                        # Ensure the directory exists
+                        mkdir -p /home/ubuntu/server-monitor-devops
                         cd /home/ubuntu/server-monitor-devops
+                        
+                        # Pull latest changes from GitHub if necessary
+                        git pull origin main
+                        
+                        # Deploy with Docker Compose
                         docker-compose down
                         docker-compose up -d
                         docker system prune -f
