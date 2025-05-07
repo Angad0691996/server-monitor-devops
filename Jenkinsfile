@@ -1,60 +1,63 @@
 pipeline {
     agent any
+
     environment {
-        EC2_HOST = '13.127.116.15'  
-        EC2_USER = 'ubuntu'
-        GIT_CREDENTIALS = credentials('github-creds')
+        // Define Docker image names
+        FLASK_IMAGE = 'flask_app'  // Update this to your Flask image name
+        PROMETHEUS_IMAGE = 'prom/prometheus'
+        GRAFANA_IMAGE = 'grafana/grafana'
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Angad0691996/server-monitor-devops.git', credentialsId: 'github-creds'
-            }
-        }
-
         stage('Build Docker Images') {
             steps {
-                sh 'docker-compose -f docker-compose.yml build'
-            }
-        }
-
-        stage('Deploy to EC2') {
-            steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ubuntu-key', keyFileVariable: 'KEY_FILE')]) {
-                    sh """
-                    chmod 600 \$KEY_FILE  # Set correct permissions for the SSH key
-                    ssh -o StrictHostKeyChecking=no -i \$KEY_FILE $EC2_USER@$EC2_HOST "
-                        # Check if the directory exists; if not, clone the repository
-                        if [ ! -d \"/home/ubuntu/server-monitor-devops/.git\" ]; then
-                            cd /home/ubuntu
-                            git clone https://github.com/Angad0691996/server-monitor-devops.git
-                        else
-                            cd /home/ubuntu/server-monitor-devops
-                            git pull origin main
-                        fi
-                        
-                        # Deploy with Docker Compose
-                        cd /home/ubuntu/server-monitor-devops
-                        docker-compose down
-                        docker-compose up -d
-                        docker system prune -f
-                    "
-                    """
+                script {
+                    // Build Flask App Docker Image
+                    sh 'docker build -t $FLASK_IMAGE .'
                 }
             }
         }
 
-        stage('Grafana Access') {
+        stage('Start Docker Containers') {
             steps {
-                echo "Grafana is now accessible at http://$EC2_HOST:3000"
+                script {
+                    // Start Prometheus container
+                    sh 'docker run -d --name prometheus -p 9090:9090 $PROMETHEUS_IMAGE'
+
+                    // Start Grafana container
+                    sh 'docker run -d --name grafana -p 3000:3000 -e GF_SECURITY_ADMIN_PASSWORD=admin $GRAFANA_IMAGE'
+
+                    // Start Flask app container
+                    sh 'docker run -d --name server-monitor -p 5000:5000 $FLASK_IMAGE'
+                }
+            }
+        }
+
+        stage('Run Tests/Monitoring') {
+            steps {
+                script {
+                    // Add commands to run tests or any other necessary monitoring here
+                    echo 'Running tests or monitoring...'
+                }
+            }
+        }
+
+        stage('Stop Docker Containers') {
+            steps {
+                script {
+                    // Stop and remove the containers after the tests or monitoring
+                    sh 'docker stop server-monitor prometheus grafana'
+                    sh 'docker rm server-monitor prometheus grafana'
+                }
             }
         }
     }
 
     post {
         always {
-            echo 'Pipeline execution complete!'
+            // Clean up any running containers if they were not stopped in the 'Stop Docker Containers' stage
+            sh 'docker ps -q | xargs docker stop'
+            sh 'docker ps -aq | xargs docker rm'
         }
     }
 }
