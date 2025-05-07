@@ -1,9 +1,9 @@
 pipeline {
     agent any
     environment {
-        EC2_HOST = '13.202.247.39'  
+        EC2_HOST = '13.202.247.39'  // Your EC2 instance IP
         EC2_USER = 'ubuntu'
-        GIT_CREDENTIALS = credentials('github-creds')
+        GIT_CREDENTIALS = credentials('github-creds')  // Add your GitHub credentials in Jenkins
     }
 
     stages {
@@ -25,23 +25,17 @@ pipeline {
                     sh '''
                     chmod 600 $KEY_FILE  # Set correct permissions for the SSH key
                     ssh -o StrictHostKeyChecking=no -i $KEY_FILE $EC2_USER@$EC2_HOST "
-                        # Check if the directory exists; if not, clone the repository
-                        if [ ! -d \"/home/ubuntu/server-monitor-devops/.git\" ]; then
-                            cd /home/ubuntu
-                            git clone https://github.com/Angad0691996/server-monitor-devops.git
-                        else
-                            cd /home/ubuntu/server-monitor-devops
-                            git pull origin main
-                        fi
+                        # Pull the latest changes
+                        cd /home/ubuntu/server-monitor-devops
+                        git pull origin main
 
-                        # Ensure required volumes are created
-                        docker volume create grafana_data
-                        docker volume create prometheus_data
-
-                        # Stop existing containers if any
+                        # Stop existing containers
                         docker-compose down
 
-                        # Deploy with Docker Compose
+                        # Ensure the data volumes are created
+                        docker volume create grafana_data
+
+                        # Rebuild and deploy with Docker Compose
                         docker-compose up -d --build
 
                         # Prune unused images and containers
