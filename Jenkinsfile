@@ -25,12 +25,14 @@ pipeline {
                     sh """
                     chmod 600 \$KEY_FILE  # Set correct permissions for the SSH key
                     ssh -o StrictHostKeyChecking=no -i \$KEY_FILE $EC2_USER@$EC2_HOST << 'EOF'
-                        # Ensure the directory exists
-                        mkdir -p /home/ubuntu/server-monitor-devops
-                        cd /home/ubuntu/server-monitor-devops
-                        
-                        # Pull latest changes from GitHub if necessary
-                        git pull origin main
+                        # Check if the directory exists; if not, clone the repository
+                        if [ ! -d "/home/ubuntu/server-monitor-devops/.git" ]; then
+                            cd /home/ubuntu
+                            git clone https://github.com/Angad0691996/server-monitor-devops.git
+                        else
+                            cd /home/ubuntu/server-monitor-devops
+                            git pull origin main
+                        fi
                         
                         # Deploy with Docker Compose
                         docker-compose down
