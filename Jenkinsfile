@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        EC2_HOST = '13.127.116.15'  
+        EC2_HOST = '13.202.247.39'  
         EC2_USER = 'ubuntu'
         GIT_CREDENTIALS = credentials('github-creds')
     }
