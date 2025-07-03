@@ -22,7 +22,7 @@ services:
       - monitoring
 
   server-monitor:
-    image: your_flask_image  # Replace this with the Flask app image name or use a build context
+    image: flask_app  # Replace this with the Flask app image name or use a build context
     container_name: server-monitor
     ports:
       - "5000:5000"
