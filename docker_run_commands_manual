@@ -1,0 +1,39 @@
+#To check if any container is running
+ubuntu@ip-172-31-47-175:~/server-monitor-devops$ docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+ubuntu@ip-172-31-47-175:~/server-monitor-devops$ docker-compose ps
+NAME                IMAGE               COMMAND             SERVICE             CREATED             STATUS              PORTS
+
+#To check the docker images 
+ubuntu@ip-172-31-47-175:~/server-monitor-devops$ docker images
+REPOSITORY        TAG       IMAGE ID       CREATED         SIZE
+flask_app         latest    58ff67f240a0   9 minutes ago   141MB
+grafana/grafana   latest    29c2d986a9d8   4 days ago      680MB
+prom/prometheus   latest    9e2e6fea3ab4   4 days ago      302MB
+
+#To launch the images
+ubuntu@ip-172-31-47-175:~/server-monitor-devops$ docker-compose up -d --build
+[+] Running 4/4
+ ✔ Network server-monitor-devops_monitoring  Created                                                                                                                            0.1s
+ ✔ Container prometheus                      Started                                                                                                                            0.1s
+ ✔ Container server-monitor                  Started                                                                                                                            0.5s
+ ✔ Container grafana                         Started                                                                                                                            0.5s
+
+#To check the running docker images
+ubuntu@ip-172-31-47-175:~/server-monitor-devops$ docker ps
+CONTAINER ID   IMAGE             COMMAND                  CREATED          STATUS          PORTS                                         NAMES
+c3b2161efa36   prom/prometheus   "/bin/prometheus --c…"   47 seconds ago   Up 47 seconds   0.0.0.0:9090->9090/tcp, [::]:9090->9090/tcp   prometheus
+dd72942691cf   flask_app         "python app/run.py"      3 minutes ago    Up 47 seconds   0.0.0.0:5000->5000/tcp, [::]:5000->5000/tcp   server-monitor
+58805182e4d2   grafana/grafana   "/run.sh"                3 minutes ago    Up 47 seconds   0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp   grafana
+
+#To stop the docker images 
+docker stop prometheus
+docker stop server-monitor
+docker stop grafana
+
+#Or
+
+docker stop c3b2161efa36
+docker stop dd72942691cf
+docker stop 58805182e4d2

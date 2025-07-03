@@ -1,15 +1,15 @@
 pipeline {
     agent any
     environment {
-        EC2_HOST = '13.127.116.15'  
+        EC2_HOST = '13.127.204.229'  // Your EC2 instance IP
         EC2_USER = 'ubuntu'
-        GIT_CREDENTIALS = credentials('github-creds')
+        GIT_CREDENTIALS = credentials('Angad-git-key')  // Add your GitHub credentials in Jenkins
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Angad0691996/server-monitor-devops.git', credentialsId: 'github-creds'
+                git branch: 'main', url: 'https://github.com/Angad0691996/server-monitor-devops.git', credentialsId: 'Angad-git-key'
             }
         }
 
@@ -22,25 +22,26 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ubuntu-key', keyFileVariable: 'KEY_FILE')]) {
-                    sh """
-                    chmod 600 \$KEY_FILE  # Set correct permissions for the SSH key
-                    ssh -o StrictHostKeyChecking=no -i \$KEY_FILE $EC2_USER@$EC2_HOST "
-                        # Check if the directory exists; if not, clone the repository
-                        if [ ! -d \"/home/ubuntu/server-monitor-devops/.git\" ]; then
-                            cd /home/ubuntu
-                            git clone https://github.com/Angad0691996/server-monitor-devops.git
-                        else
-                            cd /home/ubuntu/server-monitor-devops
-                            git pull origin main
-                        fi
-                        
-                        # Deploy with Docker Compose
+                    sh '''
+                    chmod 600 $KEY_FILE  # Set correct permissions for the SSH key
+                    ssh -o StrictHostKeyChecking=no -i $KEY_FILE $EC2_USER@$EC2_HOST "
+                        # Pull the latest changes
                         cd /home/ubuntu/server-monitor-devops
+                        git pull origin main
+
+                        # Stop existing containers
                         docker-compose down
-                        docker-compose up -d
+
+                        # Ensure the data volumes are created
+                        docker volume create grafana_data
+
+                        # Rebuild and deploy with Docker Compose
+                        docker-compose up -d --build
+
+                        # Prune unused images and containers
                         docker system prune -f
                     "
-                    """
+                    '''
                 }
             }
         }

@@ -10,6 +10,14 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - monitoring
+    restart: always
+    depends_on:
+      - server-monitor
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   grafana:
     image: grafana/grafana
@@ -17,17 +25,35 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin  # Set Grafana Admin password
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     networks:
       - monitoring
+    restart: always
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   server-monitor:
+<<<<<<< HEAD
     image: flask_app  # Replace this with the Flask app image name or use a build context
+=======
+    image: your_flask_image
+>>>>>>> f65eb20161349fc65663a628aaf707040e1136a1
     container_name: server-monitor
     ports:
       - "5000:5000"
     networks:
       - monitoring
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   monitoring:
