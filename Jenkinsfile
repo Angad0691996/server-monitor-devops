@@ -3,13 +3,13 @@ pipeline {
     environment {
         EC2_HOST = '13.202.247.39'  // Your EC2 instance IP
         EC2_USER = 'ubuntu'
-        GIT_CREDENTIALS = credentials('github-creds')  // Add your GitHub credentials in Jenkins
+        GIT_CREDENTIALS = credentials('Angad-git-key')  // Add your GitHub credentials in Jenkins
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Angad0691996/server-monitor-devops.git', credentialsId: 'github-creds'
+                git branch: 'main', url: 'https://github.com/Angad0691996/server-monitor-devops.git', credentialsId: 'Angad-git-key'
             }
         }
 
