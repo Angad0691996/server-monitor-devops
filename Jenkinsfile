@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        EC2_HOST = '13.202.247.39'  // Your EC2 instance IP
+        EC2_HOST = '13.127.204.229'  // Your EC2 instance IP
         EC2_USER = 'ubuntu'
         GIT_CREDENTIALS = credentials('Angad-git-key')  // Add your GitHub credentials in Jenkins
     }
